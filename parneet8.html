@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Library Management System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+
+        /* Sidebar Navigation Layout */
+        .sidebar {
+            width: 250px;
+            background-color: #2e7d32;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar button {
+            background-color: #4caf50;
+            color: white;
+            border: 1px solid #388e3c;
+            padding: 10px 15px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar button:hover, .sidebar button.active {
+            background-color: #1b5e20;
+            border-color: #1b5e20;
+        }
+
+        /* App Main Area Containers */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #a5d6a7;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* Title Header Panels */
+        .header {
+            background-color: #ffffff;
+            color: #2e7d32;
+            text-align: center;
+            padding: 15px;
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            background-color: #1b5e20;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+        }
+
+        /* Functional Content Segment Visibility Toggle */
+        .content-section {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Structured Forms Design Layout */
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            width: 160px;
+            font-weight: bold;
+            color: #000;
+            text-align: right;
+            padding-right: 20px;
+            font-size: 15px;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="file"],
+        .form-group select {
+            flex: 1;
+            padding: 6px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            font-size: 14px;
+            height: 32px;
+        }
+
+        /* Matching Radio Grid Alignment */
+        .radio-grid {
+            display: grid;
+            grid-template-columns: auto auto;
+            gap: 10px 40px;
+            padding-left: 5px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: bold;
+            color: #000;
+            font-size: 14px;
+        }
+
+        /* Custom Elements Controls Layout */
+        .form-submit-container {
+            margin-left: 160px;
+            margin-top: 15px;
+        }
+
+        .btn-submit {
+            background-color: #ffffff;
+            color: #333;
+            border: 1px solid #777;
+            padding: 4px 20px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-submit:hover {
+            background-color: #e6e6e6;
+        }
+
+        /* Cards and Structural Presentation Grid Tables */
+        .card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .dashboard-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metric-box {
+            background-color: #e8f5e9;
+            border-left: 5px solid #2e7d32;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .metric-box h4 { color: #1b5e20; font-size: 14px; text-transform: uppercase; }
+        .metric-box p { font-size: 24px; font-weight: bold; margin-top: 5px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 10px;
+        }
+
+        table, th, td {
+            border: 1px solid #1b5e20;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #2e7d32;
+            color: white;
+        }
+
+        .action-btn {
+            padding: 3px 8px;
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .action-btn.reject { background-color: #c62828; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <button onclick="showSection('admin-section')" class="active">Admin</button>
+        <button onclick="showSection('add-book-section')">Add Book</button>
+        <button onclick="showSection('book-report-section')">Book Report</button>
+        <button onclick="showSection('book-requests-section')">Book Requests</button>
+        <button onclick="showSection('add-students-section')">Add Students</button>
+        <button onclick="showSection('student-report-section')">Student Report</button>
+        <button onclick="showSection('issue-book-section')">Issue Book</button>
+        <button onclick="showSection('issue-report-section')">Issue Report</button>
+        <button onclick="handleLogout()" style="background-color: #b71c1c; margin-top: auto;">Logout</button>
+    </div>
+
+    <div class="main-container">
+        <div class="header">Digital Library</div>
+
+        <div id="admin-section" class="content-section active">
+            <div class="section-title">Admin Dashboard</div>
+            <div class="card">
+                <h2>Welcome to the Library Control Center</h2>
+                <p style="margin-top: 5px; color: #555;">Real-time ecosystem tracking details:</p>
+                <div class="dashboard-metrics">
+                    <div class="metric-box"><h4>Total Books</h4><p id="metric-books">3</p></div>
+                    <div class="metric-box"><h4>Registered Students</h4><p id="metric-students">2</p></div>
+                    <div class="metric-box"><h4>Active Issues</h4><p id="metric-issues">1</p></div>
+                    <div class="metric-box"><h4>Pending Requests</h4><p id="metric-requests">1</p></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="add-book-section" class="content-section">
+            <div class="section-title">ADD NEW BOOK</div>
+            <form id="addBookForm" onsubmit="executeAddBook(event)">
+                <div class="form-group">
+                    <label>Book Name:</label>
+                    <input type="text" id="bookName" required>
+                </div>
+                <div class="form-group">
+                    <label>Detail:</label>
+                    <input type="text" id="bookDetail" required>
+                </div>
+                <div class="form-group">
+                    <label>Author:</label>
+                    <input type="text" id="bookAuthor" required>
+                </div>
+                <div class="form-group">
+                    <label>Publication:</label>
+                    <input type="text" id="bookPub" required>
+                </div>
+                <div class="form-group">
+                    <label>Branch:</label>
+                    <div class="radio-grid">
+                        <label class="radio-item"><input type="radio" name="branch" value="Others" checked> Others</label>
+                        <label class="radio-item"><input type="radio" name="branch" value="BSIT"> BSIT</label>
+                        <label class="radio-item"><input type="radio" name="branch" value="BSCS"> BSCS</label>
+                        <label class="radio-item"><input type="radio" name="branch" value="BSSE"> BSSE</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Price:</label>
+                    <input type="number" id="bookPrice" required>
+                </div>
+                <div class="form-group">
+                    <label>Quantity:</label>
+                    <input type="number" id="bookQty" required>
+                </div>
+                <div class="form-group">
+                    <label>Book Photo:</label>
+                    <input type="file" id="bookPhoto">
+                </div>
+                <div class="form-submit-container">
+                    <input type="submit" class="btn-submit" value="SUBMIT">
+                </div>
+            </form>
+        </div>
+
+        <div id="book-report-section" class="content-section">
+            <div class="section-title">Book Report</div>
+            <div class="card" style="overflow-x:auto;">
+                <table id="bookTable">
+                    <thead>
+                        <tr>
+                            <th>Book Title</th>
+                            <th>Details</th>
+                            <th>Author</th>
+                            <th>Publisher</th>
+                            <th>Branch</th>
+                            <th>Price ($)</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="book-requests-section" class="content-section">
+            <div class="section-title">Book Requests Queue</div>
+            <div class="card" style="overflow-x:auto;">
+                <table id="requestsTable">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Book Requested</th>
+                            <th>Branch Target</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="add-students-section" class="content-section">
+            <div class="section-title">Add Students</div>
+            <form id="addStudentForm" onsubmit="executeAddStudent(event)">
+                <div class="form-group"><label>Student ID:</label><input type="text" id="studId" required></div>
+                <div class="form-group"><label>Student Name:</label><input type="text" id="studName" required></div>
+                <div class="form-group">
+                    <label>Branch/Major:</label>
+                    <select id="studBranch">
+                        <option value="BSCS">BSCS</option>
+                        <option value="BSSE">BSSE</option>
+                        <option value="BSIT">BSIT</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+                <div class="form-submit-container"><input type="submit" class="btn-submit" value="SUBMIT"></div>
+            </form>
+        </div>
+
+        <div id="student-report-section" class="content-section">
+            <div class="section-title">Student Report</div>
+            <div class="card" style="overflow-x:auto;">
+                <table id="studentTable">
+                    <thead>
+                        <tr><th>Student ID</th><th>Full Name</th><th>Branch</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="issue-book-section" class="content-section">
+            <div class="section-title">Issue Book Transaction</div>
+            <form id="issueBookForm" onsubmit="executeIssueBook(event)">
+                <div class="form-group">
+                    <label>Select Student:</label>
+                    <select id="issueStudentSelect" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Select Book:</label>
+                    <select id="issueBookSelect" required></select>
+                </div>
+                <div class="form-submit-container"><input type="submit" class="btn-submit" value="ISSUE BOOK"></div>
+            </form>
+        </div>
+
+        <div id="issue-report-section" class="content-section">
+            <div class="section-title">Issue Report</div>
+            <div class="card" style="overflow-x:auto;">
+                <table id="issueReportTable">
+                    <thead>
+                        <tr><th>Transaction Date</th><th>Student Info</th><th>Book Borrowed</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Reactive core app memory state management 
+        let systemState = {
+            books: [
+                { id: 1, name: "Introduction to Algorithms", detail: "Third Edition Core Text", author: "Cormen", pub: "MIT Press", branch: "BSCS", price: 95, qty: 5 },
+                { id: 2, name: "Clean Architecture", detail: "Software Structure Guidelines", author: "Robert Martin", pub: "Prentice Hall", branch: "BSSE", price: 45, qty: 2 },
+                { id: 3, name: "Network Security Essentials", detail: "Applications and Standards", author: "Stallings", pub: "Pearson", branch: "BSIT", price: 70, qty: 1 }
+            ],
+            students: [
+                { id: "STU-101", name: "John Doe", branch: "BSCS" },
+                { id: "STU-102", name: "Alice Smith", branch: "BSSE" }
+            ],
+            requests: [
+                { id: 1, studentId: "STU-102", bookName: "Design Patterns", branch: "BSSE" }
+            ],
+            issues: [
+                { date: "2026-06-25", student: "John Doe (STU-101)", book: "Introduction to Algorithms" }
+            ]
+        };
+
+        // Navigation Controller Switch
+        function showSection(sectionId) {
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.sidebar button').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(sectionId).classList.add('active');
+            
+            const sidebarBtn = Array.from(document.querySelectorAll('.sidebar button'))
+                .find(btn => btn.getAttribute('onclick').includes(sectionId));
+            if (sidebarBtn) sidebarBtn.classList.add('active');
+
+            // Refresh view components to ensure all updates are visible
+            renderSystemView();
+        }
+
+        // Render data changes to tables and metric view elements
+        function renderSystemView() {
+            // Update Dashboard Metrics
+            document.getElementById('metric-books').innerText = systemState.books.reduce((acc, b) => acc + parseInt(b.qty), 0);
+            document.getElementById('metric-students').innerText = systemState.students.length;
+            document.getElementById('metric-issues').innerText = systemState.issues.length;
+            document.getElementById('metric-requests').innerText = systemState.requests.length;
+
+            // Render Book Report 
+            const bookTableBody = document.querySelector('#bookTable tbody');
+            bookTableBody.innerHTML = systemState.books.map(b => `
+                <tr>
+                    <td><b>${b.name}</b></td>
+                    <td>${b.detail}</td>
+                    <td>${b.author}</td>
+                    <td>${b.pub}</td>
+                    <td>${b.branch}</td>
+                    <td>$${b.price}</td>
+                    <td>${b.qty}</td>
+                </tr>
+            `).join('');
+
+            // Render Student Report
+            const studentTableBody = document.querySelector('#studentTable tbody');
+            studentTableBody.innerHTML = systemState.students.map(s => `
+                <tr><td>${s.id}</td><td>${s.name}</td><td>${s.branch}</td></tr>
+            `).join('');
+
+            // Render Pending Book Requests Queue 
+            const reqTableBody = document.querySelector('#requestsTable tbody');
+            reqTableBody.innerHTML = systemState.requests.map(r => `
+                <tr>
+                    <td>${r.studentId}</td>
+                    <td>${r.bookName}</td>
+                    <td>${r.branch}</td>
+                    <td>
+                        <button class="action-btn" onclick="approveRequest(${r.id})">Approve</button>
+                        <button class="action-btn reject" onclick="removeRequest(${r.id})">Deny</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Render Issue Logs Report
+            const issueTableBody = document.querySelector('#issueReportTable tbody');
+            issueTableBody.innerHTML = systemState.issues.map(i => `
+                <tr><td>${i.date}</td><td>${i.student}</td><td>${i.book}</td></tr>
+            `).join('');
+
+            // Update Issue Book dropdown dynamically with current state values
+            const studSelect = document.getElementById('issueStudentSelect');
+            studSelect.innerHTML = systemState.students.map(s => `<option value="${s.id}">${s.name} (${s.id})</option>`).join('');
+
+            const bookSelect = document.getElementById('issueBookSelect');
+            bookSelect.innerHTML = systemState.books.map(b => 
+                `<option value="${b.id}" ${b.qty <= 0 ? 'disabled' : ''}>${b.name} (${b.qty} left)</option>`
+            ).join('');
+        }
+
+        // Action Logic: Execute Adding a New Book
+        function executeAddBook(e) {
+            e.preventDefault();
+            const newBook = {
+                id: Date.now(),
+                name: document.getElementById('bookName').value,
+                detail: document.getElementById('bookDetail').value,
+                author: document.getElementById('bookAuthor').value,
+                pub: document.getElementById('bookPub').value,
+                branch: document.querySelector('input[name="branch"]:checked').value,
+                price: document.getElementById('bookPrice').value,
+                qty: parseInt(document.getElementById('bookQty').value)
+            };
+            systemState.books.push(newBook);
+            alert(`"${newBook.name}" successfully recorded in system stock!`);
+            document.getElementById('addBookForm').reset();
+            showSection('book-report-section');
+        }
+
+        // Action Logic: Execute Adding a Student
+        function executeAddStudent(e) {
+            e.preventDefault();
+            const newStudent = {
+                id: document.getElementById('studId').value,
+                name: document.getElementById('studName').value,
+                branch: document.getElementById('studBranch').value
+            };
+            
+            // Check for duplicate student ID
+            if(systemState.students.some(s => s.id === newStudent.id)) {
+                alert("This Student ID is already registered!");
+                return;
+            }
+
+            systemState.students.push(newStudent);
+            alert(`Student "${newStudent.name}" registered safely.`);
+            document.getElementById('addStudentForm').reset();
+            showSection('student-report-section');
+        }
+
+        // Action Logic: Issue Book Event 
+        function executeIssueBook(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('issueStudentSelect').value;
+            const bookId = parseInt(document.getElementById('issueBookSelect').value);
+
+            const student = systemState.students.find(s => s.id === studentId);
+            const book = systemState.books.find(b => b.id === bookId);
+
+            if (book && book.qty > 0) {
+                book.qty -= 1; // Deduct book inventory balance count
+                const today = new Date().toISOString().split('T')[0];
+                systemState.issues.push({
+                    date: today,
+                    student: `${student.name} (${student.id})`,
+                    book: book.name
+                });
+                alert(`Transaction Approved! "${book.name}" issued to ${student.name}.`);
+                showSection('issue-report-section');
+            } else {
+                alert("Selected title is currently out of stock!");
+            }
+        }
+
+        // Request Actions
+        function removeRequest(requestId) {
+            systemState.requests = systemState.requests.filter(r => r.id !== requestId);
+            renderSystemView();
+        }
+
+        function approveRequest(requestId) {
+            const req = systemState.requests.find(r => r.id === requestId);
+            // Dynamic check: Auto create a default book inventory entry from requests pipeline
+            const newBook = {
+                id: Date.now(),
+                name: req.bookName,
+                detail: "Requested Entry",
+                author: "Unknown",
+                pub: "Pending",
+                branch: req.branch,
+                price: 0,
+                qty: 1
+            };
+            systemState.books.push(newBook);
+            alert(`Approved! "${req.bookName}" added to the library database.`);
+            removeRequest(requestId);
+            showSection('book-report-section');
+        }
+
+        function handleLogout() {
+            if(confirm("Confirm secure account logout session clean up?")) {
+                alert("Logged out successfully.");
+            }
+        }
+
+        // Run setup processing initialization
+        window.onload = renderSystemView;
+    </script>
+</body>
+</html>
